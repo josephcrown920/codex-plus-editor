@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {assistantRequest} from '../lib/assistant-provider.ts';
+let sent;
+globalThis.fetch=async(url,init)=>{sent={url,...init};return Response.json({message:{content:'Review this edit',tool_calls:[{function:{name:'propose_timeline_edits',arguments:{summary:'Title',edits:[]}}}]}})};
+const config={apiKey:'test-key',model:'minimax-m3.1-flash',models:['minimax-m3.1-flash']};
+const r=await assistantRequest(config,'ollama',{instructions:'Only propose edits',input:{request:'Add title'},tools:[{name:'propose_timeline_edits',description:'Propose',parameters:{type:'object'}}],max_output_tokens:100},new AbortController().signal);
+assert.equal(sent.url,'https://ollama.com/api/chat');assert.equal(sent.headers.authorization,'Bearer test-key');const body=JSON.parse(sent.body);assert.equal(body.stream,false);assert.equal(body.model,config.model);assert.equal(body.tools[0].function.name,'propose_timeline_edits');assert.equal(body.messages[0].role,'system');assert.equal(body.options.num_predict,100);
+const result=await r.json();assert.deepEqual(JSON.parse(result.output[0].arguments),{summary:'Title',edits:[]});assert.equal(result.output[1].content[0].text,'Review this edit');
+globalThis.fetch=async()=>new Response('Unauthorized',{status:401});assert.equal((await assistantRequest(config,'ollama',{instructions:'',input:'hi',max_output_tokens:10},new AbortController().signal)).status,401);
+console.log('Ollama request, tool normalization, text response and authentication errors passed.');
