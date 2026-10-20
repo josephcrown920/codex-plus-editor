@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Aurora Studio",
+  title: "Codex Studio",
   description: "Your video, your timeline, your creative workspace.",
   icons: {
     icon: "/favicon.svg",

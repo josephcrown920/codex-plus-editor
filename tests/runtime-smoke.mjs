@@ -9,7 +9,7 @@ const mf=new Miniflare({modules,bindings:{AURORA_OWNER_EMAIL:'owner@example.test
 const dispatch=(url,init={})=>mf.dispatchFetch(url,{...init,headers:{...init.headers,'oai-authenticated-user-id':'owner-site-id','oai-authenticated-user-email':'owner@example.test'}});
 try{
 const db=await mf.getD1Database('DB');for(const f of (await readdir('drizzle')).filter(f=>f.endsWith('.sql')).sort())await db.prepare(await readFile('drizzle/'+f,'utf8')).run();
-const r=await dispatch('https://aurora.test/');const html=await r.text();assert.equal(r.status,200,html.slice(0,1000));assert.match(html,/What should we create/);assert.match(html,/Timeline/);assert.match(html,/Aurora/);
+const r=await dispatch('https://aurora.test/');const html=await r.text();assert.equal(r.status,200,html.slice(0,1000));assert.match(html,/What should we create/);assert.match(html,/Timeline/);assert.match(html,/Codex/);assert.doesNotMatch(html,/Aurora/);assert.match(html,/Project insights/);assert.match(html,/Prompt optimizer/);
 const model=await import('../lib/editor/model.ts');const p=model.emptyProject('Smoke test');
 const saved=await dispatch('https://aurora.test/api/projects',{method:'POST',headers:{'content-type':'application/json',origin:'https://aurora.test'},body:JSON.stringify({project:p})});assert.equal(saved.status,200,await saved.clone().text());assert.equal((await saved.json()).revision,1);
 const read=await dispatch('https://aurora.test/api/projects?id='+p.id);assert.deepEqual((await read.json()).project,p);
@@ -24,6 +24,7 @@ const anon=await mf.dispatchFetch('https://aurora.test/api/generation');assert.n
 const stranger=await mf.dispatchFetch('https://aurora.test/api/projects',{headers:{'oai-authenticated-user-id':'stranger','oai-authenticated-user-email':'stranger@example.test'}});assert.notEqual(stranger.status,200);
 const w=await dispatch('https://aurora.test/w');assert.equal(w.status,200);assert.match(await w.text(),/Create/);
 const local=await dispatch('https://aurora.test/api/optimize',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({prompt:'a bird in flight',kind:'video',mode:'local'})});assert.equal(local.status,200);assert.match((await local.json()).prompt,/bird in flight/);
+const editPrompt=await dispatch('https://aurora.test/api/optimize',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({prompt:'Lower music volume',kind:'edit',mode:'local'})});assert.equal(editPrompt.status,200);assert.match((await editPrompt.json()).prompt,/Lower music volume/);
 const fal=await dispatch('https://aurora.test/api/generation/connection',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({apiKey:'fal-test-never-a-real-key'})});assert.equal(fal.status,200);
 const jobId=crypto.randomUUID(),jobBody={id:jobId,kind:'image',prompt:'a bird',ratio:'16:9'};
 for(let i=0;i<2;i++){const j=await dispatch('https://aurora.test/api/generation',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(jobBody)});assert.equal(j.status,200,await j.clone().text());const jd=await j.json();assert.equal(jd.status,'IN_QUEUE',JSON.stringify(jd));}assert.equal(generationCalls,1);

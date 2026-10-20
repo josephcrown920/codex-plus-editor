@@ -1,0 +1,10 @@
+import type {Project,Edit} from './model';
+export type Suggestion={id:string;title:string;reason:string;edits:Edit[]};
+export function reviewProject(p:Project):Suggestion[]{
+const suggestions:Suggestion[]=[];const open=p.clips.filter(c=>{const t=p.tracks.find(t=>t.id===c.trackId);return t&&!t.locked&&!t.hidden});const visual=open.filter(c=>p.tracks.find(t=>t.id===c.trackId)?.kind==='video');
+const fade=visual.find(c=>!c.fade&&c.duration>=2);if(fade)suggestions.push({id:`fade:${fade.id}`,title:'Soften a clip’s entrance and exit',reason:`“${fade.name}” has no visual fade. A short fade can make its boundaries feel gentler.`,edits:[{type:'update',clipId:fade.id,patch:{fade:.35}}]});
+const still=visual.find(c=>p.assets.find(a=>a.id===c.assetId)?.kind==='image'&&(!c.motion||c.motion==='none')&&c.duration>=3);if(still)suggestions.push({id:`motion:${still.id}`,title:'Give a still image some movement',reason:`“${still.name}” is a still image. A slow zoom can add movement without generating new media.`,edits:[{type:'update',clipId:still.id,patch:{motion:'zoom-in'}}]});
+for(const track of p.tracks.filter(t=>t.kind==='video'&&!t.locked&&!t.hidden)){const clips=p.clips.filter(c=>c.trackId===track.id).sort((a,b)=>a.start-b.start);let end=0;for(const c of clips){if(c.start-end>.25){suggestions.push({id:`gap:${c.id}:${c.start}:${end}`,title:'Review a gap on the video track',reason:`“${c.name}” starts ${(c.start-end).toFixed(2)} seconds after the previous content on ${track.name}. Keep the pause or move it earlier. Other layers may cover this interval.`,edits:[{type:'update',clipId:c.id,patch:{start:end}}]});break;}end=Math.max(end,c.start+c.duration);}if(suggestions.length>=4)break;}
+const music=open.find(c=>p.tracks.find(t=>t.id===c.trackId)?.kind==='audio'&&c.volume>.8);if(music&&visual.length)suggestions.push({id:`audio:${music.id}:${music.volume}`,title:'Try quieter background audio',reason:`“${music.name}” is above 80% volume. Try 35% if it is background music; this is based on the level setting, not audio analysis.`,edits:[{type:'update',clipId:music.id,patch:{volume:.35}}]});
+return suggestions.slice(0,4);
+}
