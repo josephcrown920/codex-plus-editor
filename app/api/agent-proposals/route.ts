@@ -1,0 +1,6 @@
+import {z} from 'zod';
+import {requireOwner} from '@/lib/owner';
+import {sameOrigin,storage,jsonError} from '@/lib/server-store';
+const project=z.string().regex(/^[a-zA-Z0-9_-]{1,100}$/);
+export async function GET(req:Request){try{await requireOwner();const id=project.parse(new URL(req.url).searchParams.get('project'));const list=await storage().bucket.list({prefix:`agent-proposals/${id}/`,limit:30});const items=await Promise.all(list.objects.map(async o=>(await storage().bucket.get(o.key))?.json()));return Response.json({proposals:items.filter((x:any)=>x?.status==='pending')},{headers:{'cache-control':'private, no-store'}});}catch(e){return jsonError(e);}}
+export async function POST(req:Request){try{await requireOwner();sameOrigin(req);const v=z.object({project:project,id:z.string().uuid(),status:z.enum(['applied','ignored'])}).parse(await req.json());const key=`agent-proposals/${v.project}/${v.id}`;const obj=await storage().bucket.get(key);if(!obj)throw Error('Proposal not found');const proposal=await obj.json<Record<string,unknown>>();await storage().bucket.put(key,JSON.stringify({...proposal,status:v.status}));return Response.json({status:v.status});}catch(e){return jsonError(e);}}

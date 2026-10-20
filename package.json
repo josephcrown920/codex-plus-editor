@@ -37,7 +37,9 @@
     "sonner": "^2.0.8",
     "tailwind-merge": "3.6.0",
     "vaul": "^1.1.2",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "@hyperframes/player": "0.8.149",
+    "@byteplus/amk-editor": "0.0.8"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.37.1",

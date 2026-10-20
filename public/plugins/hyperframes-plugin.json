@@ -1,0 +1,8 @@
+{
+  "name": "HyperFrames",
+  "source": "https://github.com/heygen-com/hyperframes",
+  "commit": "9f793a6dbd42a8b31a30087c478a6d7338645f6c",
+  "sha256": "9301a8206a0772b4b537405eaf5610e23474818af688e109ff65df840ff1a28b",
+  "packaging": "Upstream scripts/package-codex-plugin.mjs, committed HEAD",
+  "installation": "Download the ZIP and upload through your Codex plugin interface. This archive is not automatically installed by Codex Studio."
+}

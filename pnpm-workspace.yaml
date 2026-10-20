@@ -4,6 +4,8 @@ minimumReleaseAgeIgnoreMissingTime: false
 trustLockfile: false
 strictDepBuilds: true
 allowBuilds:
+  es5-ext: false
+  tos-crc64-js: false
   esbuild: true
   fsevents: true
   sharp: true

@@ -1,0 +1,5 @@
+import {requireOwner} from '@/lib/owner';
+import {getConnection} from '@/lib/ai-connection';
+import {sameOrigin,jsonError} from '@/lib/server-store';
+async function proxy(req:Request){try{await requireOwner();if(req.method!=='GET')sameOrigin(req);const c=await getConnection('amk');if(!c?.endpoint)throw Error('Configure your licensed BytePlus AMK backend first');const u=new URL(req.url),path=u.pathname.replace(/^\/api\/byteplus\/amk/,'');if(!/^\/api\/v1\/(projects|materials|tools|tasks)(\/|$)/.test(path)||path.includes('..'))throw Error('Unsupported AMK endpoint');const headers=new Headers({'authorization':`Bearer ${c.apiKey}`,'content-type':'application/json','X-Amk-Task-Source':'vibe-editing'});const r=await fetch(c.endpoint.replace(/\/$/,'')+path+u.search,{method:req.method,headers,body:req.method==='GET'?undefined:await req.text(),redirect:'manual',signal:AbortSignal.timeout(30000)});return new Response(r.body,{status:r.status,headers:{'content-type':r.headers.get('content-type')||'application/json','cache-control':'private, no-store'}});}catch(e){return jsonError(e);}}
+export {proxy as GET,proxy as POST,proxy as PUT,proxy as PATCH,proxy as DELETE};
