@@ -54,3 +54,15 @@ HyperFrames uses `@hyperframes/player@0.8.149` to preview generated title compos
 Sites connector eligibility discovery is absent in this tool environment, so existing ChatGPT app connections cannot be declared or enabled here. No arbitrary connector proxy or broad app grants were added. The independent provider APIs and Site MCP capability are implemented without bypassing that boundary.
 
 Verification uses model tests, TypeScript, a production build, and mocked-provider runtime checks. Live paid generation, licensed AMK backend operations, browser rendering, external Claude/Codex OAuth connections, and hosted connector consent have not been verified.
+
+## Version 6: landing, sessions, environments, terminal, and canvas
+
+`/` is a public landing page. The signed-in editor remains at `/w`. Sidebar links open Sessions, Environments, Terminal, Node canvas, and Effects & presets; landing links route directly to these views.
+
+Sessions are named, owner-only R2 snapshots of the project, conversation, playhead/zoom, canvas, and selected environment ID. Restoring forks a new project rather than overwriting the original. Media remains referenced. Workspace records use revisions and conditional R2 writes to reject stale updates. The stored sandbox reference is not a guarantee that the provider still retains it.
+
+Environments use the real E2B SDK, with encrypted API-key configuration, sandbox creation, pause/resume, and explicit termination. The interactive terminal uses xterm.js connected to an E2B Linux PTY; shell state lives in the sandbox and survives browser disconnection while the provider retains it. Five-minute auto-pause is requested. E2B compute and snapshot storage use the user's account. No local or hosted Worker shell is simulated, and credentials are never passed to the browser. MCP also supports bounded, user-authorized commands in a registered sandbox; it never creates a sandbox implicitly.
+
+The canvas has draggable clip, preset, prompt, generation, and output nodes with typed connections. Cycles and incompatible edges are rejected. Clip/preset output applies a validated batch to the timeline with normal undo. Prompt/generation output opens Create for explicit review and submission, with no automatic provider charge. Canvases persist per project and in session snapshots. Fifteen color, motion, title, and audio presets use the same renderer as preview/export.
+
+Verification: TypeScript, production build, preset/graph model tests, and runtime tests for the landing/editor split, sessions and graph persistence, optimistic conflict handling, and terminal credential/ownership boundaries. A live E2B sandbox/PTY requires the user's API key and has not been exercised. Visual browser testing remains unavailable.

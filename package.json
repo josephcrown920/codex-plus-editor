@@ -39,7 +39,10 @@
     "vaul": "^1.1.2",
     "zod": "^3.25.76",
     "@hyperframes/player": "0.8.149",
-    "@byteplus/amk-editor": "0.0.8"
+    "@byteplus/amk-editor": "0.0.8",
+    "e2b": "2.56.0",
+    "@xterm/xterm": "6.0.0",
+    "@xterm/addon-fit": "0.11.0"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.37.1",
