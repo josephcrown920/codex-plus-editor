@@ -5,3 +5,5 @@ declare namespace Cloudflare {
   }
 }
 declare namespace Cloudflare { interface Env { AI_CONFIG_ENCRYPTION_KEY?: string; } }
+
+declare namespace Cloudflare {interface Env { AURORA_OWNER_EMAIL?: string; }}

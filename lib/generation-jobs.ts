@@ -1,0 +1,8 @@
+import {storage} from './server-store';
+import {type GenerationKind} from './editor/generation';
+export type GenerationJob={id:string;kind:GenerationKind;status:string;createdAt:number;requestId?:string;statusUrl?:string;resultUrl?:string;cancelUrl?:string;output?:string;error?:string};
+export async function readJob(id:string):Promise<GenerationJob|undefined>{const obj=await storage().bucket.get(`generation-jobs/${id}`);return obj?await obj.json<GenerationJob>():undefined;}
+export async function writeJob(job:GenerationJob){await storage().bucket.put(`generation-jobs/${job.id}`,JSON.stringify(job),{httpMetadata:{contentType:'application/json'}});}
+export function queueUrl(value:string){const u=new URL(value);if(u.origin!=='https://queue.fal.run'||!u.pathname.startsWith('/fal-ai/')||u.username||u.password||u.hash)throw Error('Invalid provider queue response');return u.href;}
+export function publicJob(j:GenerationJob){return {id:j.id,kind:j.kind,status:j.status,createdAt:j.createdAt,output:j.output,error:j.error,requestId:j.requestId};}
+export async function falRequest(url:string,key:string,method='GET',body?:unknown){const r=await fetch(queueUrl(url),{method,headers:{authorization:`Key ${key}`,...(body?{'content-type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,redirect:'manual',signal:AbortSignal.timeout(25000)});if(!r.ok){let message='';try{const error=await r.json() as {detail?:unknown};if(typeof error.detail==='string')message=error.detail.slice(0,350);}catch{}throw Error(`fal request failed (${r.status}). ${message||'Check your key, model access, input media, and fal account balance.'}`);}return r.json() as Promise<Record<string,any>>;}
