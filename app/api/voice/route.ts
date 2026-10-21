@@ -1,0 +1,5 @@
+import {z} from 'zod';
+import {requireOwner} from '@/lib/owner';
+import {sameOrigin,jsonError} from '@/lib/server-store';
+import {getConnection} from '@/lib/ai-connection';
+export async function POST(req:Request){try{await requireOwner();sameOrigin(req);const v=z.object({text:z.string().trim().min(1).max(4000),voice:z.enum(['alloy','echo','fable','onyx','nova','shimmer']).default('nova')}).parse(await req.json());const c=await getConnection('openai');if(!c)throw Error('Connect OpenAI for generated voiceover; API audio billing applies');const r=await fetch('https://api.openai.com/v1/audio/speech',{method:'POST',headers:{authorization:`Bearer ${c.apiKey}`,'content-type':'application/json'},body:JSON.stringify({model:'tts-1',input:v.text,voice:v.voice,response_format:'mp3'}),signal:AbortSignal.any([req.signal,AbortSignal.timeout(90000)])});if(!r.ok)throw Error('Voiceover failed. Check OpenAI audio access and limits');return new Response(r.body,{headers:{'content-type':'audio/mpeg','cache-control':'no-store'}});}catch(e){return jsonError(e);}}
