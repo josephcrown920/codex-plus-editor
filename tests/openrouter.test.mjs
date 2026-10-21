@@ -1,5 +1,7 @@
+import {registerHooks} from 'node:module';
+registerHooks({resolve(specifier,context,next){try{return next(specifier,context)}catch(error){if(specifier.startsWith('.')&&!/\.[a-z]+$/.test(specifier))return next(specifier+'.ts',context);throw error}}});
 import assert from 'node:assert/strict';
-import {assistantRequest} from '../lib/assistant-provider.ts';
+const {assistantRequest}=await import('../lib/assistant-provider.ts');
 import {routerModels} from '../lib/openrouter.ts';
 let sent;
 globalThis.fetch=async(url,init)=>{sent={url,...init};return Response.json({choices:[{message:{content:'Plan ready',tool_calls:[{function:{name:'propose_timeline_edits',arguments:'{"summary":"Test","edits":[]}'}}]}}]})};
