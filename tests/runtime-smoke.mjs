@@ -1,3 +1,5 @@
+import {registerHooks} from 'node:module';
+registerHooks({resolve(specifier,context,next){try{return next(specifier,context)}catch(error){if(specifier.startsWith('.')&&!/\.[a-z]+$/.test(specifier))return next(specifier+'.ts',context);throw error}}});
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {readFile,readdir} from 'node:fs/promises';

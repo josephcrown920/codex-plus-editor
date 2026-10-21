@@ -1,7 +1,7 @@
 import {registerHooks} from 'node:module';
 registerHooks({resolve(specifier,context,next){try{return next(specifier,context)}catch(error){if(specifier.startsWith('.')&&!/\.[a-z]+$/.test(specifier))return next(specifier+'.ts',context);throw error}}});
 import assert from 'node:assert/strict';
-import {emptyProject,makeClip,applyEdit,parseCommand,projectSchema,duration} from '../lib/editor/model.ts';
+const {emptyProject,makeClip,applyEdit,parseCommand,projectSchema,duration}=await import('../lib/editor/model.ts');
 const p=emptyProject('Test');const asset={id:'footage',name:'Footage',kind:'video',src:'/api/media?key=test%2Ffootage',duration:12};p.assets=[asset];const c=makeClip('video-1',asset);p.clips=[c];
 const split=applyEdit(p,{type:'split',clipId:c.id,time:4});assert.equal(split.clips.length,2);assert.equal(split.clips[0].duration,4);assert.equal(split.clips[1].start,4);assert.equal(split.clips[1].offset,4);assert.equal(split.clips[1].duration,8);assert.equal(duration(split),12);assert.equal(p.clips.length,1);
 assert.throws(()=>applyEdit(p,{type:'split',clipId:c.id,time:0}));assert.throws(()=>applyEdit(p,{type:'update',clipId:c.id,patch:{offset:8}}));
@@ -25,3 +25,12 @@ const {clipPresets,presetEdit}=await import('../lib/editor/presets.ts');assert.o
 const mediaCatalog=await import('../lib/editor/generation.ts');
 const mediaBase={id:crypto.randomUUID(),kind:'video',provider:'fal',prompt:'Ocean waves',ratio:'16:9'};
 const veo=mediaCatalog.generationSchema.parse({...mediaBase,model:'veo3-fast'});assert.equal(mediaCatalog.selectedGenerationModel(veo).endpoint,'fal-ai/veo3/fast');assert.deepEqual(mediaCatalog.generationInput(veo),{prompt:'Ocean waves',aspect_ratio:'16:9',duration:'8s',resolution:'720p',generate_audio:false});assert.throws(()=>mediaCatalog.generationSchema.parse({...mediaBase,model:'veo3-fast',ratio:'1:1'}));assert.throws(()=>mediaCatalog.generationSchema.parse({...mediaBase,model:'flux-dev'}));assert.equal(mediaCatalog.generationInput(mediaCatalog.generationSchema.parse({...mediaBase,model:'kling21',duration:10})).duration,'10');assert.equal(mediaCatalog.selectedGenerationModel(mediaCatalog.generationSchema.parse({...mediaBase,kind:'image',model:'flux-pro'})).endpoint,'fal-ai/flux-pro/v1.1');console.log('PASS: additional media model endpoints, duration mapping and incompatible selection rejection.');
+const {effectIds,effectFilters,motionIds,motionTransform,finishVisual,drawVisual}=await import('../lib/editor/effects.ts');
+assert.ok(clipPresets.length>=60);assert.equal(new Set(clipPresets.map(x=>x.id)).size,clipPresets.length);
+for(const preset of clipPresets.filter(x=>!['Title','Audio'].includes(x.category))){const result=applyEdit(p,presetEdit(p,c.id,preset.id));projectSchema.parse(JSON.parse(JSON.stringify(result)));}
+for(const id of effectIds)assert.ok(effectFilters[id]);for(const id of motionIds)for(const progress of [0,.5,1])assert.ok(Object.values(motionTransform(id,progress,2)).every(Number.isFinite));
+assert.throws(()=>applyEdit(p,{type:'update',clipId:c.id,patch:{grain:1.1}}));assert.throws(()=>applyEdit(p,{type:'update',clipId:c.id,patch:{letterbox:.3}}));assert.throws(()=>presetEdit(locked,c.id,'cosmic-trip'));
+const decorated=applyEdit(p,presetEdit(p,c.id,'dream-sequence'));assert.equal(decorated.clips[0].ghost,.4);const cleared=applyEdit(decorated,presetEdit(decorated,c.id,'reset-look'));assert.equal(cleared.clips[0].ghost,0);assert.equal(cleared.clips[0].kaleidoscope,false);
+function mockContext(){const calls=[];return {calls,save(){calls.push(['save'])},restore(){calls.push(['restore'])},setTransform(){},createRadialGradient(){return {addColorStop(){}}},fillRect(...args){calls.push(['rect',...args])},set fillStyle(v){calls.push(['fill',v])}}}
+const grainA=mockContext(),grainB=mockContext();finishVisual(grainA,{grain:.5,letterbox:.12},1280,720,3);finishVisual(grainB,{grain:.5,letterbox:.12},1280,720,3);assert.deepEqual(grainA.calls,grainB.calls);assert.equal(grainA.calls.filter(x=>x[0]==='rect').length,802);
+console.log('PASS: cinematic/surreal preset persistence, finite motion, effect bounds, locked tracks, reset and deterministic export texture.');

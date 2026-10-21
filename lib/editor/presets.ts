@@ -14,7 +14,36 @@ export const clipPresets=[
 {id:'title-bold',name:'Bold headline',category:'Title',description:'A large centered white headline.',patch:{color:'#ffffff',fontSize:90,y:0,fade:.25}},
 {id:'audio-bed',name:'Background bed',category:'Audio',description:'Set background audio to 30%.',patch:{volume:.3}},
 {id:'audio-full',name:'Full level',category:'Audio',description:'Return the clip’s volume to 100%.',patch:{volume:1}},
-{id:'reset-look',name:'Original look',category:'Color',description:'Clear color, movement, and fades.',patch:{effect:'none',motion:'none',fade:0}}
+...([
+['teal-orange','Teal & amber','Cinematic'],['moonlight','Moonlit exterior','Cinematic'],['bleach','Bleach bypass','Cinematic'],['pastel','Pastel memory','Color'],['dream','Dream diffusion','Surreal'],['neon','Neon city','Surreal'],['infrared','Infrared world','Surreal'],['alien','Alien atmosphere','Surreal'],['underwater','Underwater blue','Color'],['desert','Desert heat','Cinematic'],['frost','Frozen light','Color'],['sunset','Burning sunset','Color'],['lavender','Lavender haze','Surreal'],['emerald','Emerald shadows','Cinematic'],['silver','Silver screen','Cinematic'],['faded','Faded memory','Cinematic'],['high-key','High key','Color'],['low-key','Low key','Cinematic'],['acid','Acid dream','Surreal']
+] as const).map(([id,name,category])=>({id,name,category,description:'A stylized color treatment. Tune finishing controls after applying.',patch:{effect:id}})),
+{id:'film-35',name:'35mm mood',category:'Cinematic',description:'Muted contrast, fine grain and a gentle vignette.',patch:{effect:'cinema',grain:.35,vignette:.35,letterbox:.08}},
+{id:'epic-wide',name:'Epic widescreen',category:'Cinematic',description:'An amber grade, wide matte and slow push.',patch:{effect:'teal-orange',letterbox:.12,motion:'zoom-in',vignette:.25,fade:.6}},
+{id:'noir-film',name:'Noir detective',category:'Cinematic',description:'Monochrome contrast with grain and dark corners.',patch:{effect:'noir',grain:.5,vignette:.65,letterbox:.08}},
+{id:'dream-sequence',name:'Lucid dream',category:'Surreal',description:'Diffusion, bloom, a floating camera and a ghost image.',patch:{effect:'dream',bloom:.65,ghost:.4,motion:'float',fade:1}},
+{id:'cosmic-trip',name:'Cosmic trip',category:'Surreal',description:'A saturated kaleidoscope with a slow orbital drift.',patch:{effect:'acid',kaleidoscope:true,motion:'orbit',bloom:.3}},
+{id:'mirror-world',name:'Mirror world',category:'Surreal',description:'Flip the scene and add a lavender atmosphere.',patch:{effect:'lavender',mirror:'horizontal',bloom:.25}},
+{id:'prism',name:'Prismatic dream',category:'Surreal',description:'Six mirrored segments with vivid color.',patch:{effect:'neon',kaleidoscope:true}},
+{id:'haunted',name:'Haunted memory',category:'Surreal',description:'Silver monochrome, displaced ghosting and dark edges.',patch:{effect:'silver',ghost:.65,vignette:.7,grain:.25}},
+{id:'bloom',name:'Soft bloom',category:'Finishing',description:'A blurred screen blend for a luminous finish.',patch:{bloom:.55}},
+{id:'grain',name:'Film grain',category:'Finishing',description:'Deterministic animated texture, consistent during export.',patch:{grain:.5}},
+{id:'vignette',name:'Lens vignette',category:'Finishing',description:'Darken the frame edges to draw attention inward.',patch:{vignette:.6}},
+{id:'wide-matte',name:'Wide matte',category:'Finishing',description:'Black bars at the top and bottom of the frame.',patch:{letterbox:.12}},
+{id:'ghost',name:'Ghost exposure',category:'Surreal',description:'A shifted duplicate of the same frame; not a temporal echo.',patch:{ghost:.6}},
+{id:'mirror-horizontal',name:'Horizontal mirror',category:'Surreal',description:'Reflect the frame left to right.',patch:{mirror:'horizontal'}},
+{id:'mirror-vertical',name:'Upside down',category:'Surreal',description:'Reflect the frame top to bottom.',patch:{mirror:'vertical'}},
+{id:'pan-right',name:'Pan right',category:'Motion',description:'Ease across the frame to the right.',patch:{motion:'pan-right'}},
+{id:'pan-up',name:'Rise',category:'Motion',description:'Ease vertically through a cropped frame.',patch:{motion:'pan-up'}},
+{id:'pan-down',name:'Descend',category:'Motion',description:'A slow downward reframing.',patch:{motion:'pan-down'}},
+{id:'float',name:'Dream float',category:'Motion',description:'A gentle vertical drift.',patch:{motion:'float'}},
+{id:'orbit',name:'Orbital drift',category:'Motion',description:'A small circular reframing and tilt.',patch:{motion:'orbit'}},
+{id:'handheld',name:'Subtle handheld',category:'Motion',description:'Small continuous camera offsets, without strobing.',patch:{motion:'handheld'}},
+{id:'roll',name:'Slow roll',category:'Motion',description:'A gradual Dutch-angle rotation.',patch:{motion:'roll'}},
+{id:'title-cinema',name:'Cinema credits',category:'Title',description:'A restrained lower white title.',patch:{color:'#f1f1ed',fontSize:38,y:35,fade:1}},
+{id:'title-neon',name:'Neon cyan',category:'Title',description:'A bold cyan heading.',patch:{color:'#8de4ee',fontSize:78,y:0,fade:.4}},
+{id:'title-dream',name:'Dream caption',category:'Title',description:'A lavender title with a long reveal.',patch:{color:'#d9c4ff',fontSize:52,y:20,fade:1.2}},
+{id:'audio-quiet',name:'Quiet ambience',category:'Audio',description:'Lower the audio to 12%.',patch:{volume:.12}},
+{id:'reset-look',name:'Original look',category:'Color',description:'Clear color, movement, and fades.',patch:{effect:'none',motion:'none',fade:0,vignette:0,grain:0,bloom:0,ghost:0,letterbox:0,mirror:'none',kaleidoscope:false}}
 ] satisfies {id:string;name:string;category:string;description:string;patch:Partial<Clip>}[];
 export type PresetId=typeof clipPresets[number]['id'];
-export function presetEdit(project:Project,clipId:string,presetId:string):Edit{const c=project.clips.find(c=>c.id===clipId);if(!c)throw Error('Select a clip first');const p=clipPresets.find(p=>p.id===presetId);if(!p)throw Error('Unknown preset');const t=project.tracks.find(t=>t.id===c.trackId);if(!t||t.locked)throw Error('Choose an unlocked clip');if(p.category==='Title'&&t.kind!=='text')throw Error('This preset needs a title clip');if(p.category==='Audio'&&t.kind==='text')throw Error('This preset needs a clip with audio');if(['Color','Motion'].includes(p.category)&&t.kind==='audio')throw Error('Choose a visual clip');return {type:'update',clipId,patch:p.patch};}
+export function presetEdit(project:Project,clipId:string,presetId:string):Edit{const c=project.clips.find(c=>c.id===clipId);if(!c)throw Error('Select a clip first');const p=clipPresets.find(p=>p.id===presetId);if(!p)throw Error('Unknown preset');const t=project.tracks.find(t=>t.id===c.trackId);if(!t||t.locked)throw Error('Choose an unlocked clip');if(p.category==='Title'&&t.kind!=='text')throw Error('This preset needs a title clip');if(p.category==='Audio'&&(t.kind==='text'||project.assets.find(a=>a.id===c.assetId)?.kind==='image'))throw Error('This preset needs a clip with audio');if(['Cinematic','Surreal','Finishing'].includes(p.category)&&t.kind!=='video')throw Error('This preset needs an image or video clip');if(['Color','Motion'].includes(p.category)&&t.kind==='audio')throw Error('Choose a visual clip');return {type:'update',clipId,patch:p.patch};}
