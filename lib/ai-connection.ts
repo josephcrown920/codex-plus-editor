@@ -1,6 +1,6 @@
 import {env} from 'cloudflare:workers';
 import {storage} from './server-store';
-export type Connection={apiKey:string;models:string[];model:string;endpoint?:string;projectId?:string;licenseUrl?:string};
+export type Connection={apiKey:string;models:string[];model:string;endpoint?:string;projectId?:string;licenseUrl?:string;catalog?:{id:string;name:string;free:boolean}[]};
 const decode=(s:string)=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 const encode=(s:Uint8Array)=>btoa(Array.from(s,c=>String.fromCharCode(c)).join(''));
 async function encryptionKey(){const secret=env.AI_CONFIG_ENCRYPTION_KEY;if(!secret)throw Error('Secure connection storage is unavailable');return crypto.subtle.importKey('raw',decode(secret),{name:'AES-GCM'},false,['encrypt','decrypt']);}

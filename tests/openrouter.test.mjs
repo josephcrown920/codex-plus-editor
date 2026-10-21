@@ -1,0 +1,9 @@
+import assert from 'node:assert/strict';
+import {assistantRequest} from '../lib/assistant-provider.ts';
+import {routerModels} from '../lib/openrouter.ts';
+let sent;
+globalThis.fetch=async(url,init)=>{sent={url,...init};return Response.json({choices:[{message:{content:'Plan ready',tool_calls:[{function:{name:'propose_timeline_edits',arguments:'{"summary":"Test","edits":[]}'}}]}}]})};
+const r=await assistantRequest({apiKey:'test-only-key',models:['test/model'],model:'test/model'},'openrouter',{instructions:'Propose edits',input:{request:'Add a title'},tools:[{name:'propose_timeline_edits',description:'Edit plan',parameters:{type:'object'}}],max_output_tokens:100},new AbortController().signal);
+assert.equal(sent.url,'https://openrouter.ai/api/v1/chat/completions');const body=JSON.parse(sent.body);assert.equal(body.tools[0].function.name,'propose_timeline_edits');assert.equal(body.model,'test/model');const d=await r.json();assert.equal(d.output[0].type,'function_call');assert.deepEqual(JSON.parse(d.output[0].arguments).edits,[]);assert.equal(d.output[1].content[0].text,'Plan ready');
+globalThis.fetch=async(url)=>url.endsWith('/key')?Response.json({data:{}}):Response.json({data:[{id:'a/free',name:'Free',supported_parameters:['tools'],architecture:{output_modalities:['text']},pricing:{prompt:'0',completion:'0'}},{id:'b/image',name:'Image only',supported_parameters:['tools'],architecture:{output_modalities:['image']}},{id:'c/no-tools',name:'No tools',supported_parameters:[],architecture:{output_modalities:['text']}}]});assert.deepEqual(await routerModels('test-key'),[{id:'a/free',name:'Free',free:true}]);
+globalThis.fetch=async()=>new Response('',{status:401});await assert.rejects(routerModels('bad-key'),/verified/);console.log('PASS: OpenRouter tool requests, response normalization, model capability filtering, free pricing and rejected keys.');

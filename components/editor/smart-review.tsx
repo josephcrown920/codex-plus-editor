@@ -6,7 +6,7 @@ import {reviewProject,type Suggestion} from '@/lib/editor/review';
 import {type Project,type Edit} from '@/lib/editor/model';
 import {planSchema,applyPlan} from '@/lib/editor/ai-plan';
 type Review={base:Project;items:Suggestion[];source:'local'|'ai'};
-export function SmartReview({project,disabled,connected,onApply,onRewrite,provider='openai'}:{project:Project;disabled:boolean;connected:boolean;provider?:'openai'|'claude'|'ollama';onApply:(edits:Edit[],base:Project)=>void;onRewrite:(request:string)=>void}){
+export function SmartReview({project,disabled,connected,onApply,onRewrite,provider='openai'}:{project:Project;disabled:boolean;connected:boolean;provider?:'openai'|'claude'|'ollama'|'openrouter';onApply:(edits:Edit[],base:Project)=>void;onRewrite:(request:string)=>void}){
 const [auto,setAuto]=useState(true),[review,setReview]=useState<Review>({base:project,items:[],source:'local'}),[ignored,setIgnored]=useState<string[]>([]),[busy,setBusy]=useState(false),[error,setError]=useState('');const latest=useRef(project);latest.current=project;const controller=useRef<AbortController|undefined>(undefined);
 useEffect(()=>{setIgnored([]);return()=>controller.current?.abort()},[project.id]);
 useEffect(()=>{if(!auto)return;const timer=setTimeout(()=>{setReview({base:project,items:reviewProject(project),source:'local'});setError('')},900);return()=>clearTimeout(timer)},[project,auto]);
