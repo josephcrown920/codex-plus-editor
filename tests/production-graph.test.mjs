@@ -1,0 +1,12 @@
+import {registerHooks} from 'node:module';
+registerHooks({resolve(s,c,next){try{return next(s,c)}catch(e){if(s.startsWith('.')&&!/\.[a-z]+$/.test(s))return next(s+'.ts',c);throw e}}});
+import assert from 'node:assert/strict';
+const {classifyCraft,planGraph,readyNodes}=await import('../lib/editor/production-graph.ts');
+assert.equal(classifyCraft('a short film scene'),'short_film');assert.equal(classifyCraft('music video for social'),'music_video');
+const g=planGraph('p','music video');assert.ok(g.nodes.find(n=>n.id==='assemble').dependsOn.includes('ask-track'));
+const done=new Set(g.nodes.map(n=>n.id).filter(id=>id!=='ask-track'&&id!=='assemble'));
+assert.ok(!readyNodes(g,done,new Set()).some(n=>n.id==='assemble'));done.add('ask-track');assert.ok(readyNodes(g,done,new Set()).some(n=>n.id==='assemble'));
+const existing=planGraph('p','wedding footage',{hasFootage:true,hasScript:true});assert.ok(!existing.nodes.some(n=>n.type==='ask_user'));assert.equal(existing.nodes.find(n=>n.id==='voice').input.from,'provided-script');
+for(const n of existing.nodes)for(const d of n.dependsOn)assert.ok(existing.nodes.some(x=>x.id===d));assert.deepEqual(existing.nodes.find(n=>n.id==='render').dependsOn,['revise']);
+assert.ok(!readyNodes(g,new Set(),new Set(['classify'])).some(n=>n.id==='script'));
+console.log('PASS: recovered planner intent precedence, upload dependencies, script references, revision sequencing and failed dependencies.');
