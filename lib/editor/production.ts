@@ -1,7 +1,9 @@
 import {z} from 'zod';
+import {projectBrandSchema} from '../lantern/brand';
 export const workflows=['Casting','Production Design','Storyboarding','PDP Assets','Transitions','VFX','Pre-viz'] as const;
 export const providers=['openai','claude','ollama','openrouter','gemini'] as const;
 export const productionSchema=z.object({
+ brand:projectBrandSchema.optional(),
  workflow:z.enum(workflows).default('Storyboarding'),
  provider:z.enum(providers).default('openai'),
  characters:z.string().max(6000).default(''),
