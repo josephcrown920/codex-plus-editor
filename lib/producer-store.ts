@@ -1,0 +1,6 @@
+import {storage} from './server-store';
+import {producerRunSchema,type ProducerRun} from './editor/producer';
+export class ProductionConflict extends Error{}
+export function producerKey(projectId:string,id:string){if(!/^[a-zA-Z0-9_-]{1,100}$/.test(projectId)||!/^[a-f0-9-]{36}$/.test(id))throw Error('Invalid production identifier');return `producer-runs/${projectId}/${id}`;}
+export async function loadProduction(projectId:string,id:string){const obj=await storage().bucket.get(producerKey(projectId,id));if(!obj)throw Error('Production not found');return {run:producerRunSchema.parse(await obj.json()),etag:obj.etag};}
+export async function saveProduction(run:ProducerRun,old?:{run:ProducerRun;etag:string}){const next=producerRunSchema.parse({...run,revision:(old?.run.revision||0)+1,updatedAt:Date.now()});const result=await storage().bucket.put(producerKey(next.projectId,next.id),JSON.stringify(next),{onlyIf:old?{etagMatches:old.etag}:{etagDoesNotMatch:'*'},httpMetadata:{contentType:'application/json'},customMetadata:{name:next.plan.title,updatedAt:new Date(next.updatedAt).toISOString(),status:next.status}});if(!result)throw new ProductionConflict('This production changed in another tab. Reload before continuing.');return next;}

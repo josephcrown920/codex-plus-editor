@@ -1,0 +1,7 @@
+import {env} from 'cloudflare:workers';
+const keyPattern=/^[a-zA-Z0-9_-]{1,100}\/[a-zA-Z0-9_-]{1,100}$/;
+const bytes=(s:string)=>new TextEncoder().encode(s);
+async function signingKey(){if(!env.AI_CONFIG_ENCRYPTION_KEY)throw Error('Secure media sharing is unavailable');const material=await crypto.subtle.digest('SHA-256',bytes('codex-provider-media-v1:'+env.AI_CONFIG_ENCRYPTION_KEY));return crypto.subtle.importKey('raw',material,{name:'HMAC',hash:'SHA-256'},false,['sign','verify']);}
+export function validateMediaKey(key:string){if(!keyPattern.test(key))throw Error('Invalid media key');return key;}
+export async function signMedia(key:string,origin:string){validateMediaKey(key);const expires=Math.floor(Date.now()/1000)+3600,signature=await crypto.subtle.sign('HMAC',await signingKey(),bytes(key+'\0'+expires));const hex=Array.from(new Uint8Array(signature),b=>b.toString(16).padStart(2,'0')).join('');const url=new URL('/api/provider-media',origin);url.searchParams.set('key',key);url.searchParams.set('expires',String(expires));url.searchParams.set('signature',hex);return {url:url.href,expires};}
+export async function verifyMedia(key:string,expires:string|null,signature:string|null){if(!keyPattern.test(key)||!expires||!/^\d+$/.test(expires)||!signature||!/^[a-f0-9]{64}$/.test(signature))return false;const n=Number(expires),now=Math.floor(Date.now()/1000);if(n<=now||n>now+3600)return false;return crypto.subtle.verify('HMAC',await signingKey(),Uint8Array.from(signature.match(/../g)!,s=>parseInt(s,16)),bytes(key+'\0'+expires));}
