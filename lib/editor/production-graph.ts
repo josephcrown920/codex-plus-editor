@@ -1,8 +1,6 @@
-// Adapted from the user's recovered Lantern agent planner. Types reconstructed
-// because the original @lantern/types implementation has not been recovered.
-export type Craft='ad'|'social'|'explainer'|'documentary'|'short_film'|'music_video'|'product'|'avatar'|'event_edit'|'other';
-export type AgentNode={id:string;type:string;dependsOn:string[];input:unknown};
-export type AgentGraph={id:string;projectId:string;craft:Craft;nodes:AgentNode[]};
+// Adapted from the recovered Lantern planner; uses the recovered shared contracts.
+import type {AgentGraph,AgentNode,Craft} from '../lantern/types';
+export type {AgentGraph,AgentNode,Craft} from '../lantern/types';
 
 const CRAFT_HINTS: Array<{ re: RegExp; craft: Craft }> = [
   { re: /\b(ad|promo|ugc|commercial|cta)\b/i, craft: 'ad' },
