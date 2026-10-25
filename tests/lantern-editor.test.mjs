@@ -1,0 +1,10 @@
+import {registerHooks} from 'node:module';
+registerHooks({resolve(s,c,next){try{return next(s,c)}catch(e){if(s.startsWith('.')&&!/\.[a-z]+$/.test(s))return next(s+'.ts',c);throw e}}});
+import assert from 'node:assert/strict';
+const {emptyTimeline,emptyTrack,appendClip,clipFromAsset,durationMs}=await import('../lib/lantern/editor.ts');
+const {lanternProjectExport}=await import('../lib/lantern/project-export.ts');
+const {emptyProject,makeClip}=await import('../lib/editor/model.ts');
+const doc=emptyTimeline('p','9:16','1080p');assert.equal(doc.width,1080);assert.equal(doc.height,1920);
+doc.tracks[0].locked=true;doc.tracks.push(emptyTrack('video','V2'));const appended=appendClip(doc,'video',clipFromAsset('a',50,500));assert.equal(appended.tracks[0].clips.length,0);assert.equal(appended.tracks.at(-1).clips.length,1);assert.equal(durationMs(appended),500);assert.equal(doc.tracks.at(-1).clips.length,0);
+const p=emptyProject('Transfer');p.assets=[{id:'a',name:'Footage',kind:'video',src:'/api/media?key=a',duration:20}];const c=makeClip('video-1',p.assets[0],2);c.offset=1;c.duration=3;c.speed=2;c.grain=.3;p.clips=[c];const result=lanternProjectExport(p),out=result.document.tracks.find(t=>t.id==='video-1').clips[0];assert.equal(out.startMs,2000);assert.equal(out.endMs,5000);assert.equal(out.inMs,1000);assert.equal(out.outMs,7000);assert.equal(out.style.codexStudio.grain,.3);assert.deepEqual(result.sourceProject,p);assert.equal(p.clips[0].duration,3);
+console.log('PASS: recovered timeline helpers respect locks, append once, preserve source-time speed, timing and complete original project in Lantern export.');
