@@ -1,6 +1,6 @@
 import {storage} from './server-store';
 import {type GenerationKind} from './editor/generation';
-export type GenerationJob={id:string;kind:GenerationKind;provider?:'fal'|'byteplus'|'openai';model?:string;status:string;createdAt:number;requestId?:string;statusUrl?:string;resultUrl?:string;cancelUrl?:string;output?:string;mask?:string;error?:string};
+export type GenerationJob={id:string;kind:GenerationKind;provider?:'fal'|'byteplus'|'openai'|'huggingface';model?:string;status:string;createdAt:number;requestId?:string;hfEventId?:string;statusUrl?:string;resultUrl?:string;cancelUrl?:string;output?:string;mask?:string;error?:string};
 export async function readJob(id:string):Promise<GenerationJob|undefined>{const obj=await storage().bucket.get(`generation-jobs/${id}`);return obj?await obj.json<GenerationJob>():undefined;}
 export async function writeJob(job:GenerationJob){await storage().bucket.put(`generation-jobs/${job.id}`,JSON.stringify(job),{httpMetadata:{contentType:'application/json'}});}
 export function queueUrl(value:string){const u=new URL(value);if(u.origin!=='https://queue.fal.run'||!u.pathname.startsWith('/fal-ai/')||u.username||u.password||u.hash)throw Error('Invalid provider queue response');return u.href;}
