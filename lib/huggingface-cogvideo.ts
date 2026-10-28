@@ -78,7 +78,7 @@ export async function waitForCogVideoX(eventId: string, fetchImpl: typeof fetch 
 export async function persistCogVideoXFile(
   remoteUrl: string,
   key: string,
-  bucket: { put(key: string, value: ArrayBuffer, options: { httpMetadata: { contentType: string } }): Promise<unknown> },
+  bucket: { put(key: string, value: ReadableStream<Uint8Array>, options: { httpMetadata: { contentType: string } }): Promise<unknown> },
   fetchImpl: typeof fetch = fetch,
 ): Promise<void> {
   const url = trustedSpaceFileUrl(remoteUrl);
@@ -86,9 +86,19 @@ export async function persistCogVideoXFile(
   if (!response.ok) throw new Error(`CogVideoX result download failed (${response.status})`);
   const contentType = response.headers.get('content-type')?.split(';')[0] || '';
   if (contentType !== 'video/mp4') throw new Error('CogVideoX did not return an MP4 video');
-  const bytes = await response.arrayBuffer();
-  if (!bytes.byteLength || bytes.byteLength > MAX_VIDEO_BYTES) throw new Error('CogVideoX video is empty or exceeds the 100 MB import limit');
-  await bucket.put(key, bytes, { httpMetadata: { contentType } });
+  const declaredSize = Number(response.headers.get('content-length'));
+  if (Number.isFinite(declaredSize) && declaredSize > MAX_VIDEO_BYTES) throw new Error('CogVideoX video exceeds the 100 MB import limit');
+  if (!response.body) throw new Error('CogVideoX returned an empty video');
+  let received = 0;
+  const limitedBody = response.body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>({
+    transform(chunk, controller) {
+      received += chunk.byteLength;
+      if (received > MAX_VIDEO_BYTES) throw new Error('CogVideoX video exceeds the 100 MB import limit');
+      controller.enqueue(chunk);
+    },
+  }));
+  await bucket.put(key, limitedBody, { httpMetadata: { contentType } });
+  if (!received) throw new Error('CogVideoX returned an empty video');
 }
 
 export const COGVIDEOX_SPACE_URL = 'https://huggingface.co/spaces/kaidjuric/cogvideox-5b-text-to-video';

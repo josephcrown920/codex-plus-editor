@@ -25,7 +25,7 @@ await assert.rejects(()=>waitForCogVideoX('../bad',async()=>Response.json({})),/
 
 let saved;
 await persistCogVideoXFile(resultUrl,'project/job',{
-  async put(key,bytes,options){saved={key,bytes,options};},
+  async put(key,body,options){saved={key,bytes:await new Response(body).arrayBuffer(),options};},
 },async()=>new Response(new Uint8Array([1,2,3]),{headers:{'content-type':'video/mp4'}}));
 assert.equal(saved.key,'project/job');
 assert.equal(saved.bytes.byteLength,3);
