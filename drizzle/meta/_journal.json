@@ -15,6 +15,13 @@
       "when": 1791388288898,
       "tag": "0001_gorgeous_vargas",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1794320012111,
+      "tag": "0002_talented_king_cobra",
+      "breakpoints": true
     }
   ]
 }

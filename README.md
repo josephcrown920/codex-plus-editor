@@ -31,7 +31,7 @@ Motion transfer takes public HTTPS character-image and reference-video URLs. Lip
 
 Prompt optimization supports a free local template and an optional OpenAI-powered rewrite using the editing assistant's existing API connection. Both are reviewable before generation. Clip properties include color effects, pan/zoom presets, and visual fades, applied by the timeline renderer during preview and WebM export.
 
-`/` and `/w` open the same signed-in editor. The public site's editor and API routes are restricted to the configured owner email (`AURORA_OWNER_EMAIL` in Sites runtime secrets). Existing projects, media, and connection records are preserved. No provider keys are embedded in the browser bundle.
+`/` and `/w` open the same signed-in editor. Any customer can sign in with ChatGPT. Projects, media, sessions, environments, generation history, and encrypted provider connections are isolated by their stable account ID. Apply migration `0002_talented_king_cobra.sql` when deploying this update. Existing pre-migration records are claimed once by the first account that opens the migrated workspace, then remain isolated by stable account ID. No provider keys are embedded in the browser bundle.
 
 Verification: TypeScript checking, editor model tests, and Miniflare runtime smoke tests with mocked OpenAI/fal responses. Real paid generation and browser rendering require additional live verification.
 
