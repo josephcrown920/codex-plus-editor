@@ -1,17 +1,23 @@
 "use client";
-import { useState } from "react";
+import {useState} from "react";
+import {ArrowUp,Hand,MessageSquare,Sparkles,Square,WandSparkles} from "lucide-react";
 
-export function TimelineAgentDock() {
+export function TimelineAgentDock({prompt,onPrompt,onSend,onCancel,busy,approval,onToggleApproval,modeLabel,selectedLabel,playhead,onOpenAssistant,onCreate}:{prompt:string;onPrompt:(value:string)=>void;onSend:()=>void;onCancel:()=>void;busy:boolean;approval:boolean;onToggleApproval:()=>void;modeLabel:string;selectedLabel?:string;playhead:string;onOpenAssistant:()=>void;onCreate:()=>void}) {
   const [open,setOpen]=useState(true);
-  const [prompt,setPrompt]=useState("");
-  return <aside aria-label="Timeline AI Agent" className="absolute bottom-3 right-3 z-50 w-[360px] rounded-xl border border-white/10 bg-black/90 shadow-2xl">
-    <button className="flex w-full items-center justify-between px-4 py-3 text-sm font-semibold" onClick={()=>setOpen(v=>!v)}>
-      <span>Timeline Agent</span><span>{open?"−":"+"}</span>
-    </button>
-    {open&&<div className="border-t border-white/10 p-3">
-      <div className="mb-2 text-xs opacity-60">Understands selected clips, tracks, playhead and scene context.</div>
-      <textarea value={prompt} onChange={e=>setPrompt(e.target.value)} placeholder="Cut this scene tighter, replace the background, or drive this character with the selected performance…" className="min-h-20 w-full rounded-lg border border-white/10 bg-white/5 p-2 text-sm outline-none"/>
-      <div className="mt-2 flex gap-2 text-xs"><button className="rounded-md bg-white px-3 py-2 text-black">Plan edit</button><button className="rounded-md border border-white/10 px-3 py-2">Use selection</button></div>
+  return <div className={"timeline-agent "+(open?"open":"collapsed")}>
+    <div className="timeline-agent-head">
+      <button type="button" className="timeline-agent-title" onClick={()=>setOpen(v=>!v)} aria-expanded={open}><Sparkles size={14}/><strong>Timeline Agent</strong><span>{modeLabel}</span></button>
+      <button type="button" className="timeline-agent-chat" onClick={onOpenAssistant} title="Open full assistant"><MessageSquare size={14}/></button>
+    </div>
+    {open&&<div className="timeline-agent-body">
+      <div className="timeline-agent-context"><span>{selectedLabel?"Selected: "+selectedLabel:"No clip selected"}</span><span>Playhead {playhead}</span></div>
+      <textarea aria-label="Timeline agent command" value={prompt} onChange={e=>onPrompt(e.target.value)} maxLength={1000} disabled={busy} placeholder="Tell the agent what to do to this timeline…" onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();if(prompt.trim()&&!busy)onSend();}}}/>
+      <div className="timeline-agent-actions">
+        <button type="button" className={"timeline-agent-approval "+(approval?"enabled":"")} onClick={onToggleApproval}><Hand size={13}/>{approval?"Review first":"Edit directly"}</button>
+        <button type="button" onClick={onCreate}><WandSparkles size={13}/>Generate</button>
+        <span className="timeline-agent-spacer"/>
+        <button type="button" className="timeline-agent-send" aria-label={busy?"Cancel agent":"Send to timeline agent"} disabled={!busy&&!prompt.trim()} onClick={busy?onCancel:onSend}>{busy?<Square size={11}/>:<ArrowUp size={15}/>}</button>
+      </div>
     </div>}
-  </aside>;
+  </div>;
 }
